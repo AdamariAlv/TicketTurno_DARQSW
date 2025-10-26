@@ -1,8 +1,123 @@
-﻿@{
-    ViewData["Title"] = "Niveles";
+﻿@model IEnumerable<TicketDeTurno.Web.Models.Nivel>
+@{
+    ViewData["Title"] = "Catálogo de Niveles";
+    Layout = "_Layout";
 }
 
-<h2 class="mb-4">@ViewData["Title"]</h2>
-<div class="alert alert-info">
-    ¡Bienvenida al catalogo de niveles educativos!<br>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-primary">
+        <i class="bi bi-layers me-2"></i> Catálogo de Niveles
+    </h3>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrear">
+        <i class="bi bi-plus-circle me-1"></i> Nuevo Nivel
+    </button>
 </div>
+
+<table id="tablaNiveles" class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var n in Model)
+        {
+            <tr>
+                <td>@n.NivelId</td>
+                <td>@n.Nombre</td>
+                <td class="text-center">
+                    <button class="btn btn-warning btn-sm btnEditar"
+                            data-id="@n.NivelId"
+                            data-nombre="@n.Nombre">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <form asp-action="EliminarNivel" method="post" class="d-inline formEliminar">
+                        <input type="hidden" name="id" value="@n.NivelId" />
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal Crear -->
+<div class="modal fade" id="modalCrear" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Nuevo Nivel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CrearNivel" method="post">
+                <div class="modal-body">
+                    <label>Nombre del nivel:</label>
+                    <input type="text" class="form-control" name="nombre" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Editar Nivel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditarNivel" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="editId" />
+                    <label>Nombre del nivel:</label>
+                    <input type="text" class="form-control" name="nombre" id="editNombre" required />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Confirmar eliminación
+        $(".formEliminar").on("submit", function (e) {
+            e.preventDefault();
+            const form = this;
+            Swal.fire({
+                title: "¿Eliminar nivel?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+
+        // Modal editar
+        $(".btnEditar").on("click", function () {
+            const id = $(this).data("id");
+            const nombre = $(this).data("nombre");
+            $("#editId").val(id);
+            $("#editNombre").val(nombre);
+            $("#modalEditar").modal("show");
+        });
+    </script>
+}

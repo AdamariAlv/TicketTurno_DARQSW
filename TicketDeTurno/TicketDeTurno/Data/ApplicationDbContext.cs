@@ -14,6 +14,8 @@ namespace TicketDeTurno.Web.Data
         public DbSet<Alumno> Alumnos { get; set; }
         public DbSet<Solicitud> Solicitudes { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<TipoTramite> TiposTramite { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

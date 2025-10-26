@@ -1,20 +1,20 @@
-﻿@model IEnumerable<TicketDeTurno.Web.Models.Municipio>
+﻿@model IEnumerable<TicketDeTurno.Web.Models.TipoTramite>
 @{
-    ViewData["Title"] = "Catálogo de Municipios";
+    ViewData["Title"] = "Catálogo de Trámites";
     Layout = "_Layout";
 }
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold text-primary">
-        <i class="bi bi-geo-alt-fill me-2"></i> Catálogo de Municipios
+        <i class="bi bi-geo-alt-fill me-2"></i> Catálogo de Trámites
     </h3>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrear">
-        <i class="bi bi-plus-circle me-1"></i> Nuevo Municipio
+        <i class="bi bi-plus-circle me-1"></i> Nuevo Trámite
     </button>
 </div>
 
-<table id="tablaMunicipios" class="table table-striped table-hover align-middle">
+<table id="tablaTiposTramite" class="table table-striped table-hover align-middle">
     <thead class="table-dark">
         <tr>
             <th>ID</th>
@@ -26,16 +26,16 @@
         @foreach (var m in Model)
         {
             <tr>
-                <td>@m.MunicipioId</td>
+                <td>@m.TipoTramiteId</td>
                 <td>@m.Nombre</td>
                 <td class="text-center">
                     <button class="btn btn-warning btn-sm btnEditar"
-                            data-id="@m.MunicipioId"
+                            data-id="@m.TipoTramiteId"
                             data-nombre="@m.Nombre">
                         <i class="bi bi-pencil-square"></i>
                     </button>
-                    <form asp-action="EliminarMunicipio" method="post" class="d-inline formEliminar">
-                        <input type="hidden" name="id" value="@m.MunicipioId" />
+                    <form asp-action="EliminarTipoTramite" method="post" class="d-inline formEliminar">
+                        <input type="hidden" name="id" value="@m.TipoTramiteId" />
                         <button type="submit" class="btn btn-danger btn-sm">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -51,12 +51,12 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Nuevo Municipio</h5>
+                <h5 class="modal-title">Nuevo Trámite</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-action="CrearMunicipio" method="post">
+            <form asp-action="CrearTipoTramite" method="post">
                 <div class="modal-body">
-                    <label>Nombre del municipio:</label>
+                    <label>Nombre del trámite:</label>
                     <input type="text" class="form-control" name="nombre" required />
                 </div>
                 <div class="modal-footer">
@@ -72,13 +72,13 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title">Editar Municipio</h5>
+                <h5 class="modal-title">Editar Trámite</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-action="EditarMunicipio" method="post">
+            <form asp-action="EditarTipoTramite" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editId" />
-                    <label>Nombre del municipio:</label>
+                    <label>Nombre del trámite:</label>
                     <input type="text" class="form-control" name="nombre" id="editNombre" required />
                 </div>
                 <div class="modal-footer">
@@ -90,43 +90,43 @@
 </div>
 
 @section Scripts {
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    // Inicializar DataTable
-    new DataTable('#tablaMunicipios', {
-        language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-        }
-    });
-
-    // SweetAlert al eliminar
-    $(".formEliminar").on("submit", function (e) {
-        e.preventDefault();
-        const form = this;
-        Swal.fire({
-            title: "¿Eliminar municipio?",
-            text: "Esta acción no se puede deshacer.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Sí, eliminar",
-            cancelButtonText: "Cancelar"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        // Inicializar DataTable
+        new DataTable('#tablaTiposTramite', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
             }
         });
-    });
 
-    // Cargar datos en modal editar
-    $(".btnEditar").on("click", function () {
-        const id = $(this).data("id");
-        const nombre = $(this).data("nombre");
-        $("#editId").val(id);
-        $("#editNombre").val(nombre);
-        $("#modalEditar").modal("show");
-    });
-</script>
+        // SweetAlert al eliminar
+        $(".formEliminar").on("submit", function (e) {
+            e.preventDefault();
+            const form = this;
+            Swal.fire({
+                title: "¿Eliminar trámite?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+
+        // Cargar datos en modal editar
+        $(".btnEditar").on("click", function () {
+            const id = $(this).data("id");
+            const nombre = $(this).data("nombre");
+            $("#editId").val(id);
+            $("#editNombre").val(nombre);
+            $("#modalEditar").modal("show");
+        });
+    </script>
 }

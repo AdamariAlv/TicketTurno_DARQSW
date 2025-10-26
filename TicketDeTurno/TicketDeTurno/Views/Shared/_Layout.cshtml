@@ -88,6 +88,11 @@
                         <i class="bi bi-mortarboard me-2"></i> Niveles
                     </a>
                 </li>
+                <li>
+                    <a asp-controller="Catalogos" asp-action="TiposTramite" class="nav-link">
+                        <i class="bi bi-ui-checks-grid me-2"></i> Trámites
+                    </a>
+                </li>
             </ul>
             <hr />
             <div>
@@ -124,5 +129,6 @@
     <!-- Scripts extra (opcional) -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
