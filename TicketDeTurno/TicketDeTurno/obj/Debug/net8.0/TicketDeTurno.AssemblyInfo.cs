@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TicketDeTurno")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+87fcfba6f8463008ca5c091d7db1594a4844d42f")]
 [assembly: System.Reflection.AssemblyProductAttribute("TicketDeTurno")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TicketDeTurno")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
