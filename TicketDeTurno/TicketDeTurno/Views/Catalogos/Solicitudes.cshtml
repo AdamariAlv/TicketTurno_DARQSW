@@ -1,0 +1,167 @@
+﻿@model IEnumerable<TicketDeTurno.Web.Models.Solicitud>
+@{
+    ViewData["Title"] = "Catálogo de Solicitudes";
+    Layout = "_Layout";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-primary">
+        <i class="bi bi-card-checklist me-2"></i> Catálogo de Solicitudes
+    </h3>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrear">
+        <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
+    </button>
+</div>
+
+<table id="tablaSolicitudes" class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>CURP</th>
+            <th>Fecha Alta</th>
+            <th>Fecha Atención</th>
+            <th>Quien Realiza</th>
+            <th>Asunto</th>
+            <th>Estatus</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.SolicitudId</td>
+                <td>@s.CURP</td>
+                <td>@s.FechaAlta.ToString("dd/MM/yyyy")</td>
+                <td>@(s.FechaAtencion != null ? s.FechaAtencion.Value.ToString("dd/MM/yyyy") : "")</td>
+                <td>@s.QuienRealiza</td>
+                <td>@s.Asunto</td>
+                <td>@s.Estatus</td>
+                <td class="text-center">
+                    <button class="btn btn-warning btn-sm btnEditar"
+                            data-id="@s.SolicitudId"
+                            data-descripcion="@s.Asunto"
+                            data-estado="@s.Estatus">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <form asp-action="EliminarSolicitud" method="post" class="d-inline formEliminar">
+                        <input type="hidden" name="id" value="@s.SolicitudId" />
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal Crear -->
+<div class="modal fade" id="modalCrear" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Nueva Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="CrearSolicitud" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Descripción:</label>
+                        <input type="text" class="form-control" name="descripcion" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Estado:</label>
+                        <select class="form-select" name="estado" required>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En proceso">En proceso</option>
+                            <option value="Atendida">Atendida</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Editar Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="EditarSolicitud" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="editId" />
+                    <div class="mb-3">
+                        <label>Descripción:</label>
+                        <input type="text" class="form-control" name="descripcion" id="editDescripcion" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Estado:</label>
+                        <select class="form-select" name="estado" id="editEstado" required>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En proceso">En proceso</option>
+                            <option value="Atendida">Atendida</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        // Inicializar DataTable
+        new DataTable('#tablaSolicitudes', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            }
+        });
+
+        // Confirmación al eliminar con SweetAlert2
+        $(".formEliminar").on("submit", function (e) {
+            e.preventDefault();
+            const form = this;
+            Swal.fire({
+                title: "¿Eliminar solicitud?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+
+        // Cargar datos en el modal de edición
+        $(".btnEditar").on("click", function () {
+            const id = $(this).data("id");
+            const descripcion = $(this).data("descripcion");
+            const estado = $(this).data("estado");
+
+            $("#editId").val(id);
+            $("#editDescripcion").val(descripcion);
+            $("#editEstado").val(estado);
+            $("#modalEditar").modal("show");
+        });
+    </script>
+}
