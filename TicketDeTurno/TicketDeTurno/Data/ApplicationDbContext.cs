@@ -3,9 +3,9 @@ using TicketDeTurno.Web.Models;
 using System.Linq;
 
 
-namespace TicketDeTurno.Web.Data
+namespace TicketDeTurno.Web.Data //SRP
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext //singleton crea una unica instancia de la conexion a la base de datos
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 

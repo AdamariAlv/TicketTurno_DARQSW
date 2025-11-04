@@ -9,18 +9,18 @@ namespace TicketDeTurno.Controllers
         [AuthFilter]
         public class CatalogosController : Controller
         {
-            private readonly ApplicationDbContext _context;
+            private readonly ApplicationDbContext _context;//singleton DIP
 
             public CatalogosController(ApplicationDbContext context)
             {
-                _context = context;
-            }
+                _context = context; //constructor dependency injection  
+        }
 
         // CRUD Municipios
         public IActionResult Municipios()
             {
-                var municipios = _context.Municipios.ToList();
-                return View(municipios);
+                var municipios = _context.Municipios.ToList();//repositorio para obtener todos los municipios  
+            return View(municipios);
             }
 
             [HttpPost]
@@ -255,7 +255,7 @@ namespace TicketDeTurno.Controllers
                 return Json(new { existe = false });
             }
 
-            return Json(new
+            return Json(new  //dto devuelve un tipo texto plano json segun el modelo o clase
             {
                 existe = true,
                 nombre = alumno.Nombre,

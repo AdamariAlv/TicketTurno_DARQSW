@@ -30,8 +30,11 @@
   </Class>
   <Class Name="TicketDeTurno.Web.Models.Solicitud">
     <Position X="7.5" Y="3.25" Width="1.5" />
+    <Members>
+      <Property Name="TipoTramite" Hidden="true" />
+    </Members>
     <TypeIdentifier>
-      <HashCode>ECAAAAAABAAAAAEAAAAAAAAAAABAABwAABRABAAAEAA=</HashCode>
+      <HashCode>ECAAAAAABAAAAAEAAAAACAAAAABAABwAABRABAAAEIA=</HashCode>
       <FileName>Models\Solicitud.cs</FileName>
     </TypeIdentifier>
   </Class>

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TicketDeTurno.Web.Models
 {
-    public class Solicitud
+    public class Solicitud //dto solicita estructura que devuelve un tipo texto plano json
     {
         [Key]
         public Guid SolicitudId { get; set; }
@@ -42,7 +42,7 @@ namespace TicketDeTurno.Web.Models
         public int TipoTramiteId { get; set; }
 
         [ForeignKey(nameof(TipoTramiteId))]
-        public TipoTramite TipoTramite { get; set; }
+        public TipoTramite TipoTramite { get; set; } //OCP
 
     }
 }

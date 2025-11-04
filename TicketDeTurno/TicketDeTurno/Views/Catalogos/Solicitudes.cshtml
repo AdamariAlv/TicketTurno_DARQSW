@@ -91,38 +91,38 @@
                     <div class="row g-4">
                         <!-- CURP -->
                         <div class="col-md-6">
-                            <label class="form-label">CURP:</label>
+                            <label class="form-label">*CURP:</label>
                             <input type="text" id="curpInput" maxlength="18" class="form-control text-uppercase" required />
                             <small class="text-muted">Escribe la CURP y sal del campo para consultar datos existentes.</small>
                         </div>
 
                         <!-- Nombre -->
                         <div class="col-md-4">
-                            <label class="form-label">Nombre del Alumno:</label>
+                            <label class="form-label">*Nombre del Alumno:</label>
                             <input type="text" id="nombreInput" class="form-control text-uppercase" required />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Apellido Paterno:</label>
+                            <label class="form-label">*Apellido Paterno:</label>
                             <input type="text" id="paternoInput" class="form-control text-uppercase" required />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Apellido Materno:</label>
+                            <label class="form-label">*Apellido Materno:</label>
                             <input type="text" id="maternoInput" class="form-control text-uppercase" required />
                         </div>
 
                         <!-- Contacto -->
                         <div class="col-md-4">
-                            <label class="form-label">Teléfono:</label>
+                            <label class="form-label">*Teléfono:</label>
                             <input type="text" id="telefonoInput" maxlength="20" class="form-control" />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Correo:</label>
+                            <label class="form-label">*Correo:</label>
                             <input type="email" id="correoInput" class="form-control" placeholder="ejemplo@mail.com" />
                         </div>
 
                         <!-- Catálogos -->
                         <div class="col-md-4">
-                            <label class="form-label">Municipio:</label>
+                            <label class="form-label">*Municipio:</label>
                             <select id="municipioInput" class="form-select" required>
                                 @foreach (var m in ViewBag.Municipios as List<TicketDeTurno.Web.Models.Municipio>)
                                 {
@@ -131,7 +131,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Nivel:</label>
+                            <label class="form-label">*Nivel:</label>
                             <select id="nivelInput" class="form-select" required>
                                 @foreach (var n in ViewBag.Niveles as List<TicketDeTurno.Web.Models.Nivel>)
                                 {
@@ -140,7 +140,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Tipo de Trámite:</label>
+                            <label class="form-label">*Tipo de Trámite:</label>
                             <select id="tramiteInput" class="form-select" required>
                                 @foreach (var t in ViewBag.TiposTramite as List<TicketDeTurno.Web.Models.TipoTramite>)
                                 {
@@ -151,11 +151,11 @@
 
                         <!-- Detalles -->
                         <div class="col-md-6">
-                            <label class="form-label">¿Quién realiza el trámite?:</label>
+                            <label class="form-label">*¿Quién realiza el trámite?:</label>
                             <input type="text" id="quienRealizaInput" class="form-control text-uppercase" required />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Asunto o descripción:</label>
+                            <label class="form-label">*Breve descripción:</label>
                             <input type="text" id="asuntoInput" maxlength="300" class="form-control text-uppercase" required />
                         </div>
                     </div>
@@ -318,19 +318,45 @@
         // ============= REGISTRAR SOLICITUD POR AJAX =============
         $('#btnGuardar').on('click', function () {
             let data = {
-                CURP: $('#curpInput').val(),
-                Nombre: $('#nombreInput').val(),
-                Paterno: $('#paternoInput').val(),
-                Materno: $('#maternoInput').val(),
-                Telefono: $('#telefonoInput').val(),
-                Correo: $('#correoInput').val(),
+                CURP: $('#curpInput').val().trim(),
+                Nombre: $('#nombreInput').val().trim(),
+                Paterno: $('#paternoInput').val().trim(),
+                Materno: $('#maternoInput').val().trim(),
+                Telefono: $('#telefonoInput').val().trim(),
+                Correo: $('#correoInput').val().trim(),
                 MunicipioId: $('#municipioInput').val(),
                 NivelId: $('#nivelInput').val(),
                 TipoTramiteId: $('#tramiteInput').val(),
-                QuienRealiza: $('#quienRealizaInput').val(),
-                Asunto: $('#asuntoInput').val()
+                QuienRealiza: $('#quienRealizaInput').val().trim(),
+                Asunto: $('#asuntoInput').val().trim()
             };
 
+            // Validación de campos obligatorios
+            if (!data.CURP || !data.Nombre || !data.Paterno || !data.MunicipioId ||
+                !data.NivelId || !data.TipoTramiteId || !data.QuienRealiza || !data.Asunto) {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Por favor llena todos los campos obligatorios antes de guardar.',
+                    confirmButtonColor: '#3085d6'
+                });
+                return; // No continúa si faltan campos
+            }
+
+            // Validación de CURP con Regex
+            const regexCurp = /^[A-Z]{4}\d{6}[A-Z]{6}[0-9A-Z]{2}$/i;
+            if (!regexCurp.test(data.CURP)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'CURP inválida',
+                    text: 'Revisa el formato de la CURP. Debe contener 18 caracteres válidos.',
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+
+            // AJAX si todo está correcto
             $.ajax({
                 url: '/Catalogos/CrearSolicitud',
                 method: 'POST',
@@ -351,10 +377,11 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo registrar la solicitud. Verifique los datos.',
+                        text: 'No se pudo registrar la solicitud. Verifique los datos ingresados.',
                     });
                 }
             });
         });
+
     </script>
 }
