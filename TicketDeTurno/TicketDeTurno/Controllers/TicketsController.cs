@@ -65,6 +65,9 @@ namespace TicketDeTurno.Controllers
         [HttpPost]
         public IActionResult Registrar(Solicitud model)
         {
+            // 🔄 Evita validar la propiedad de navegación que aún no está asignada
+            ModelState.Remove("TipoTramite");
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Municipios = _context.Municipios.ToList();
@@ -73,7 +76,7 @@ namespace TicketDeTurno.Controllers
                 return View(model);
             }
 
-            // 1️⃣ Buscar o crear alumno
+            // 🔍 Buscar o crear alumno
             var alumno = _context.Alumnos.FirstOrDefault(a => a.CURP == model.CURP);
             if (alumno == null)
             {
@@ -89,20 +92,22 @@ namespace TicketDeTurno.Controllers
                     MunicipioId = model.MunicipioId
                 };
 
-                // Adjuntar relaciones existentes
-                alumno.Nivel = new Nivel { NivelId = model.NivelId };
-                alumno.Municipio = new Municipio { MunicipioId = model.MunicipioId };
-                _context.Attach(alumno.Nivel);
-                _context.Attach(alumno.Municipio);
-
                 _context.Alumnos.Add(alumno);
                 _context.SaveChanges();
             }
+            else
+            {
+                // 📌 Actualiza municipio y nivel solo si fueron cambiados
+                alumno.MunicipioId = model.MunicipioId;
+                alumno.NivelId = model.NivelId;
+                _context.Update(alumno);
+                _context.SaveChanges();
+            }
 
-            // 🔄 Reconsultar para asegurar que EF tiene la instancia actual
+            // 🧠 Reconsultar alumno con contexto actualizado
             alumno = _context.Alumnos.First(a => a.CURP == model.CURP);
 
-            // 2️⃣ Asignar turno secuencial por municipio
+            // 🔢 Turno secuencial por municipio
             var ultimo = _context.Solicitudes
                 .Where(s => s.MunicipioId == model.MunicipioId)
                 .OrderByDescending(s => s.NumeroTurno)
@@ -113,19 +118,49 @@ namespace TicketDeTurno.Controllers
             model.Estatus = "Pendiente";
             model.FechaAlta = DateTime.Now;
 
-            // ⚡ Vincular alumno y su CURP de manera explícita
+            // ✅ Relaciona tipo de trámite
+            model.TipoTramite = _context.TiposTramite.First(t => t.TipoTramiteId == model.TipoTramiteId);
+
+            // ✅ Relación con alumno
             model.CURP = alumno.CURP;
             model.Alumno = alumno;
 
-            // 3️⃣ Guardar solicitud
+            // 💾 Guardar solicitud
             _context.Solicitudes.Add(model);
             _context.SaveChanges();
 
-            // 4️⃣ Confirmación
+            // 🎉 Confirmación
             TempData["Turno"] = model.NumeroTurno;
             TempData["CURP"] = model.CURP;
 
             return RedirectToAction("Confirmacion");
+        }
+
+        [HttpGet]
+        public IActionResult BuscarAlumnoPorCurp(string curp)
+        {
+            if (string.IsNullOrWhiteSpace(curp))
+                return Json(new { existe = false });
+
+            var alumno = _context.Alumnos
+                .Where(a => a.CURP == curp)
+                .Select(a => new
+                {
+                    existe = true,
+                    nombre = a.Nombre,
+                    paterno = a.Paterno,
+                    materno = a.Materno,
+                    telefono = a.Telefono,
+                    correo = a.Correo,
+                    municipioId = a.MunicipioId,
+                    nivelId = a.NivelId
+                })
+                .FirstOrDefault();
+
+            if (alumno != null)
+                return Json(alumno);
+            else
+                return Json(new { existe = false });
         }
 
 

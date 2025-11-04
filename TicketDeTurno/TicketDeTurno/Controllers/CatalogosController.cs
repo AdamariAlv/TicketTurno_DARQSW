@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TicketDeTurno.Web.Data;
-using TicketDeTurno.Web.Models;
 using TicketDeTurno.Web.Filters;
+using TicketDeTurno.Web.Models;
 
 namespace TicketDeTurno.Controllers
     {
@@ -142,6 +143,131 @@ namespace TicketDeTurno.Controllers
             }
             return RedirectToAction("Niveles");
         }
+        //crud solicitudes (para admin)
+        public IActionResult Solicitudes(string busqueda)
+        {
+            var solicitudes = _context.Solicitudes
+                .Include(s => s.Alumno) // Para poder mostrar info del alumno
+                .Include(s => s.Municipio)
+                .Include(s => s.Nivel)
+                 .Include(s => s.TipoTramite)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                busqueda = busqueda.Trim().ToUpper();
+                solicitudes = solicitudes.Where(s =>
+                    s.CURP.ToUpper().Contains(busqueda) ||
+                    (s.Alumno != null &&
+                    (s.Alumno.Nombre + " " + s.Alumno.Paterno + " " + s.Alumno.Materno)
+                        .ToUpper()
+                        .Contains(busqueda))
+                );
+            }
+
+            solicitudes = solicitudes.OrderByDescending(s => s.FechaAlta);
+            ViewBag.TiposTramite = _context.TiposTramite.OrderBy(t => t.Nombre).ToList();
+            ViewBag.Municipios = _context.Municipios.OrderBy(m => m.Nombre).ToList();
+            ViewBag.Niveles = _context.Niveles.OrderBy(n => n.Nombre).ToList();
+            return View("~/Views/Catalogos/Solicitudes.cshtml", solicitudes.ToList());
+        }
+
+        [HttpPost]
+        public IActionResult EditarSolicitud(Guid id, string asunto, string quienRealiza, string estado, int idMunicipio, int idNivel)
+        {
+            var sol = _context.Solicitudes
+                .Include(s => s.Alumno)
+                .FirstOrDefault(s => s.SolicitudId == id);
+
+            if (sol == null)
+                return RedirectToAction("Solicitudes");
+
+            sol.Asunto = asunto;
+            sol.QuienRealiza = quienRealiza;
+            sol.MunicipioId = idMunicipio;
+            sol.NivelId = idNivel;
+
+            sol.Estatus = estado?.Trim() ?? sol.Estatus;
+            if (string.Equals(sol.Estatus, "Resuelto", StringComparison.OrdinalIgnoreCase))
+            {
+                sol.FechaAtencion = DateTime.Now;
+            }
+            else
+            {
+                sol.FechaAtencion = null;
+            }
+
+            _context.SaveChanges();
+            return RedirectToAction("Solicitudes");
+        }
+
+        [HttpPost]
+        public IActionResult EliminarSolicitud(Guid id)
+        {
+            var sol = _context.Solicitudes.Find(id);
+            if (sol != null)
+            {
+                _context.Solicitudes.Remove(sol);
+                _context.SaveChanges();
+            }
+            return RedirectToAction("Solicitudes");
+        }
+
+        [HttpPost]
+        public IActionResult CrearSolicitud(Alumno alumno, Solicitud solicitud, int tipoTramiteId)
+        {
+            // Buscar si el alumno ya existe
+            var alumnoExistente = _context.Alumnos.Find(alumno.CURP);
+            if (alumnoExistente == null)
+                _context.Alumnos.Add(alumno);
+            else
+                solicitud.CURP = alumnoExistente.CURP;
+
+            // Generar número de turno secuencial por municipio
+            var ultimoTurno = _context.Solicitudes
+                .Where(s => s.MunicipioId == solicitud.MunicipioId)
+                .OrderByDescending(s => s.NumeroTurno)
+                .Select(s => s.NumeroTurno)
+                .FirstOrDefault();
+
+            solicitud.NumeroTurno = ultimoTurno + 1;
+
+            // Asignar los demás valores
+            solicitud.TipoTramiteId = tipoTramiteId;
+            solicitud.FechaAlta = DateTime.Now;
+            solicitud.Estatus = "Pendiente";
+
+            _context.Solicitudes.Add(solicitud);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [HttpGet]
+        public JsonResult BuscarAlumnoPorCurp(string curp)
+        {
+            curp = curp?.Trim().ToUpper();
+            var alumno = _context.Alumnos.FirstOrDefault(a => a.CURP == curp);
+
+            if (alumno == null)
+            {
+                return Json(new { existe = false });
+            }
+
+            return Json(new
+            {
+                existe = true,
+                nombre = alumno.Nombre,
+                paterno = alumno.Paterno,
+                materno = alumno.Materno,
+                telefono = alumno.Telefono,
+                correo = alumno.Correo,
+                municipioId = alumno.MunicipioId,
+                nivelId = alumno.NivelId
+            });
+        }
+
 
     }
 }

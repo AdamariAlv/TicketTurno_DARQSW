@@ -4,26 +4,38 @@
     Layout = "_Layout";
 }
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold text-primary">
         <i class="bi bi-card-checklist me-2"></i> Catálogo de Solicitudes
     </h3>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrear">
-        <i class="bi bi-plus-circle me-1"></i> Nueva Solicitud
+        <i class="bi bi-plus-circle me-1"></i> Registrar Solicitud
     </button>
 </div>
+
+<!-- Búsqueda -->
+<form method="get" action="/Catalogos/Solicitudes" class="row g-3 mb-4">
+    <div class="col-md-5">
+        <input type="text" name="busqueda" class="form-control" placeholder="Buscar por CURP o Nombre..."
+               value="@ViewContext.HttpContext.Request.Query["busqueda"]" />
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Buscar
+        </button>
+    </div>
+</form>
 
 <table id="tablaSolicitudes" class="table table-striped table-hover align-middle">
     <thead class="table-dark">
         <tr>
-            <th>ID</th>
+            <th>Turno</th>
             <th>CURP</th>
-            <th>Fecha Alta</th>
-            <th>Fecha Atención</th>
-            <th>Quien Realiza</th>
+            <th>Alumno</th>
+            <th>Tipo de Trámite</th>
             <th>Asunto</th>
+            <th>Municipio</th>
+            <th>Fecha Alta</th>
             <th>Estatus</th>
             <th class="text-center">Acciones</th>
         </tr>
@@ -32,18 +44,26 @@
         @foreach (var s in Model)
         {
             <tr>
-                <td>@s.SolicitudId</td>
+                <td class="fw-bold">@s.NumeroTurno</td>
                 <td>@s.CURP</td>
-                <td>@s.FechaAlta.ToString("dd/MM/yyyy")</td>
-                <td>@(s.FechaAtencion != null ? s.FechaAtencion.Value.ToString("dd/MM/yyyy") : "")</td>
-                <td>@s.QuienRealiza</td>
+                <td>@(s.Alumno?.Nombre.ToUpper() + " " + s.Alumno?.Paterno.ToUpper())</td>
+                <td>@s.TipoTramite?.Nombre</td>
                 <td>@s.Asunto</td>
-                <td>@s.Estatus</td>
+                <td>@s.Municipio?.Nombre</td>
+                <td>@s.FechaAlta.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <span class="badge @(s.Estatus == "Resuelto" ? "bg-success" : "bg-warning text-dark")">
+                        @s.Estatus
+                    </span>
+                </td>
                 <td class="text-center">
                     <button class="btn btn-warning btn-sm btnEditar"
                             data-id="@s.SolicitudId"
-                            data-descripcion="@s.Asunto"
-                            data-estado="@s.Estatus">
+                            data-asunto="@s.Asunto"
+                            data-quien="@s.QuienRealiza"
+                            data-estado="@s.Estatus"
+                            data-municipio="@s.MunicipioId"
+                            data-nivel="@s.NivelId">
                         <i class="bi bi-pencil-square"></i>
                     </button>
                     <form asp-action="EliminarSolicitud" method="post" class="d-inline formEliminar">
@@ -58,40 +78,101 @@
     </tbody>
 </table>
 
-<!-- Modal Crear -->
-<div class="modal fade" id="modalCrear" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Modal Crear Solicitud -->
+<div class="modal fade" id="modalCrear" tabindex="-1" aria-labelledby="modalCrearLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Nueva Solicitud</h5>
+                <h5 class="modal-title">Registrar Nueva Solicitud</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-action="CrearSolicitud" method="post">
+            <form id="formCrear">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label>Descripción:</label>
-                        <input type="text" class="form-control" name="descripcion" required />
-                    </div>
-                    <div class="mb-3">
-                        <label>Estado:</label>
-                        <select class="form-select" name="estado" required>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="En proceso">En proceso</option>
-                            <option value="Atendida">Atendida</option>
-                        </select>
+                    <div class="row g-4">
+                        <!-- CURP -->
+                        <div class="col-md-6">
+                            <label class="form-label">CURP:</label>
+                            <input type="text" id="curpInput" maxlength="18" class="form-control text-uppercase" required />
+                            <small class="text-muted">Escribe la CURP y sal del campo para consultar datos existentes.</small>
+                        </div>
+
+                        <!-- Nombre -->
+                        <div class="col-md-4">
+                            <label class="form-label">Nombre del Alumno:</label>
+                            <input type="text" id="nombreInput" class="form-control text-uppercase" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Apellido Paterno:</label>
+                            <input type="text" id="paternoInput" class="form-control text-uppercase" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Apellido Materno:</label>
+                            <input type="text" id="maternoInput" class="form-control text-uppercase" required />
+                        </div>
+
+                        <!-- Contacto -->
+                        <div class="col-md-4">
+                            <label class="form-label">Teléfono:</label>
+                            <input type="text" id="telefonoInput" maxlength="20" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Correo:</label>
+                            <input type="email" id="correoInput" class="form-control" placeholder="ejemplo@mail.com" />
+                        </div>
+
+                        <!-- Catálogos -->
+                        <div class="col-md-4">
+                            <label class="form-label">Municipio:</label>
+                            <select id="municipioInput" class="form-select" required>
+                                @foreach (var m in ViewBag.Municipios as List<TicketDeTurno.Web.Models.Municipio>)
+                                {
+                                    <option value="@m.MunicipioId">@m.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nivel:</label>
+                            <select id="nivelInput" class="form-select" required>
+                                @foreach (var n in ViewBag.Niveles as List<TicketDeTurno.Web.Models.Nivel>)
+                                {
+                                    <option value="@n.NivelId">@n.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo de Trámite:</label>
+                            <select id="tramiteInput" class="form-select" required>
+                                @foreach (var t in ViewBag.TiposTramite as List<TicketDeTurno.Web.Models.TipoTramite>)
+                                {
+                                    <option value="@t.TipoTramiteId">@t.Nombre</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Detalles -->
+                        <div class="col-md-6">
+                            <label class="form-label">¿Quién realiza el trámite?:</label>
+                            <input type="text" id="quienRealizaInput" class="form-control text-uppercase" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Asunto o descripción:</label>
+                            <input type="text" id="asuntoInput" maxlength="300" class="form-control text-uppercase" required />
+                        </div>
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <button type="button" id="btnGuardar" class="btn btn-success">Registrar Solicitud</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Editar -->
+
+<!-- Modal Editar Solicitud -->
 <div class="modal fade" id="modalEditar" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning">
                 <h5 class="modal-title">Editar Solicitud</h5>
@@ -100,17 +181,41 @@
             <form asp-action="EditarSolicitud" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editId" />
-                    <div class="mb-3">
-                        <label>Descripción:</label>
-                        <input type="text" class="form-control" name="descripcion" id="editDescripcion" required />
-                    </div>
-                    <div class="mb-3">
-                        <label>Estado:</label>
-                        <select class="form-select" name="estado" id="editEstado" required>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="En proceso">En proceso</option>
-                            <option value="Atendida">Atendida</option>
-                        </select>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label>Municipio:</label>
+                            <select class="form-select" name="idMunicipio" id="editMunicipio" required>
+                                @foreach (var m in ViewBag.Municipios as List<TicketDeTurno.Web.Models.Municipio>)
+                                {
+                                    <option value="@m.MunicipioId">@m.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Nivel:</label>
+                            <select class="form-select" name="idNivel" id="editNivel" required>
+                                @foreach (var n in ViewBag.Niveles as List<TicketDeTurno.Web.Models.Nivel>)
+                                {
+                                    <option value="@n.NivelId">@n.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label>¿Quién realiza?</label>
+                            <input type="text" name="quienRealiza" id="editQuien" class="form-control text-uppercase" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Asunto:</label>
+                            <input type="text" name="asunto" id="editAsunto" class="form-control text-uppercase" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Estado:</label>
+                            <select class="form-select" name="estado" id="editEstado" required>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Resuelto">Resuelto</option>
+                            </select>
+                            <small class="text-muted">El estado "Resuelto" asignará automáticamente la Fecha de Atención.</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -122,17 +227,14 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script>
-        // Inicializar DataTable
-        new DataTable('#tablaSolicitudes', {
-            language: {
-                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            }
-        });
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-        // Confirmación al eliminar con SweetAlert2
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // ============= ELIMINAR SOLICITUD =============
         $(".formEliminar").on("submit", function (e) {
             e.preventDefault();
             const form = this;
@@ -152,16 +254,107 @@
             });
         });
 
-        // Cargar datos en el modal de edición
+        // ============= EDITAR SOLICITUD (Abrir modal) =============
         $(".btnEditar").on("click", function () {
             const id = $(this).data("id");
-            const descripcion = $(this).data("descripcion");
             const estado = $(this).data("estado");
+            const asunto = $(this).data("asunto");
+            const quien = $(this).data("quien");
+            const municipio = $(this).data("municipio");
+            const nivel = $(this).data("nivel");
 
             $("#editId").val(id);
-            $("#editDescripcion").val(descripcion);
             $("#editEstado").val(estado);
+            $("#editAsunto").val(asunto);
+            $("#editQuien").val(quien);
+            $("#editMunicipio").val(municipio);
+            $("#editNivel").val(nivel);
+
             $("#modalEditar").modal("show");
+        });
+
+        // ============= VALIDAR FORMATO DE CURP EN TIEMPO REAL =============
+        document.getElementById('curpInput').addEventListener('input', function () {
+            const curp = this.value.toUpperCase();
+            const regex = /^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/;
+            if (!regex.test(curp)) {
+                this.setCustomValidity("CURP no válida (debe tener 18 caracteres con formato oficial).");
+            } else {
+                this.setCustomValidity("");
+            }
+        });
+
+        // ============= AUTOCOMPLETADO BASADO EN CURP =============
+        $('#curpInput').on('blur', function () {
+            let curp = $(this).val().trim().toUpperCase();
+            if (curp.length === 18) {
+                $.get(`/Catalogos/BuscarAlumnoPorCurp?curp=${curp}`, function (data) {
+                    if (data.existe) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Alumno registrado',
+                            text: 'Se cargaron los datos guardados del alumno.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // Autollenado
+                        $('#nombreInput').val(data.nombre).prop("readonly", true);
+                        $('#paternoInput').val(data.paterno).prop("readonly", true);
+                        $('#maternoInput').val(data.materno).prop("readonly", true);
+                        $('#telefonoInput').val(data.telefono);
+                        $('#correoInput').val(data.correo);
+                        $('#municipioInput').val(data.municipioId);
+                        $('#nivelInput').val(data.nivelId);
+                    } else {
+                        // Limpiar campos y habilitar captura
+                        $('#nombreInput, #paternoInput, #maternoInput').val("").prop("readonly", false);
+                        $('#telefonoInput, #correoInput').val("");
+                    }
+                });
+            }
+        });
+
+        // ============= REGISTRAR SOLICITUD POR AJAX =============
+        $('#btnGuardar').on('click', function () {
+            let data = {
+                CURP: $('#curpInput').val(),
+                Nombre: $('#nombreInput').val(),
+                Paterno: $('#paternoInput').val(),
+                Materno: $('#maternoInput').val(),
+                Telefono: $('#telefonoInput').val(),
+                Correo: $('#correoInput').val(),
+                MunicipioId: $('#municipioInput').val(),
+                NivelId: $('#nivelInput').val(),
+                TipoTramiteId: $('#tramiteInput').val(),
+                QuienRealiza: $('#quienRealizaInput').val(),
+                Asunto: $('#asuntoInput').val()
+            };
+
+            $.ajax({
+                url: '/Catalogos/CrearSolicitud',
+                method: 'POST',
+                data: data,
+                success: function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Solicitud registrada',
+                        text: 'La solicitud ha sido creada correctamente.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $('#modalCrear').modal('hide');
+                        location.reload();
+                    });
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo registrar la solicitud. Verifique los datos.',
+                    });
+                }
+            });
         });
     </script>
 }

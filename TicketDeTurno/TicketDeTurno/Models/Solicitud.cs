@@ -39,5 +39,10 @@ namespace TicketDeTurno.Web.Models
 
         [ForeignKey(nameof(MunicipioId))]
         public Municipio? Municipio { get; set; }
+        public int TipoTramiteId { get; set; }
+
+        [ForeignKey(nameof(TipoTramiteId))]
+        public TipoTramite TipoTramite { get; set; }
+
     }
 }

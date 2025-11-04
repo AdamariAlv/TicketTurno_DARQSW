@@ -2,6 +2,7 @@
 @{
     Layout = null;
 }
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,6 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+
     <style>
         body {
             background: linear-gradient(135deg, #4A56D3, #6F7BF9);
@@ -20,6 +22,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 40px;
         }
 
         .form-card {
@@ -27,8 +30,9 @@
             backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 40px;
-            width: 700px;
+            width: 800px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            animation: fadeIn 0.6s ease-in-out;
         }
 
         label {
@@ -43,12 +47,12 @@
             border-radius: 10px;
         }
 
-            .form-control:focus {
+            .form-control:focus, select:focus, textarea:focus {
                 box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.3);
             }
 
         .btn-submit {
-            background-color: #4A5BFA;
+            background-color: #5046e5;
             border: none;
             border-radius: 10px;
             width: 100%;
@@ -59,51 +63,81 @@
         }
 
             .btn-submit:hover {
-                background-color: #5E6FFF;
+                background-color: #6957fa;
                 transform: translateY(-2px);
             }
+
+        .btn-back {
+            margin-top: 15px;
+            width: 100%;
+            border-radius: 10px;
+            background-color: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            font-weight: 500;
+        }
+
+            .btn-back:hover {
+                background-color: rgba(255,255,255,0.3);
+            }
+
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
     </style>
 </head>
+
 <body>
     <div class="form-card">
         <h3 class="text-center mb-4"><i class="bi bi-ui-checks me-2"></i> Registrar Solicitud</h3>
+
         <form asp-action="Registrar" method="post" id="formTicket">
+            <div asp-validation-summary="All" class="text-warning"></div>
+            @Html.AntiForgeryToken()
             <div class="row g-3">
+                <!-- CURP -->
                 <div class="col-md-6">
-                    <label>CURP</label>
-                    <div class="input-group">
-                        <input type="text" name="CURP" id="CURP" class="form-control" required maxlength="18" />
-                        <button type="button" id="btnValidarCurp" class="btn btn-outline-light">Validar</button>
-                    </div>
-                    <div id="curpStatus" class="form-text text-light"></div>
+                    <label for="CURP">CURP</label>
+                    <input type="text" name="CURP" id="CURP" class="form-control text-uppercase" required maxlength="18" />
+                    <small class="form-text text-light">Debe tener 18 caracteres.</small>
                 </div>
+
+                <!-- Datos Alumno -->
                 <h5 class="mt-4 mb-2 fw-semibold text-white">Datos del Alumno</h5>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label>Nombre</label>
-                        <input type="text" name="Alumno.Nombre" class="form-control" required />
-                    </div>
-                    <div class="col-md-4">
-                        <label>Apellido paterno</label>
-                        <input type="text" name="Alumno.Paterno" class="form-control" required />
-                    </div>
-                    <div class="col-md-4">
-                        <label>Apellido materno</label>
-                        <input type="text" name="Alumno.Materno" class="form-control" required />
-                    </div>
-                    <div class="col-md-6">
-                        <label>Teléfono</label>
-                        <input type="text" name="Alumno.Telefono" class="form-control" maxlength="20" />
-                    </div>
-                    <div class="col-md-6">
-                        <label>Correo</label>
-                        <input type="email" name="Alumno.Correo" class="form-control" />
-                    </div>
+                <div class="col-md-4">
+                    <label>Nombre</label>
+                    <input type="text" name="Alumno.Nombre" class="form-control text-uppercase" required />
+                </div>
+                <div class="col-md-4">
+                    <label>Apellido paterno</label>
+                    <input type="text" name="Alumno.Paterno" class="form-control text-uppercase" required />
+                </div>
+                <div class="col-md-4">
+                    <label>Apellido materno</label>
+                    <input type="text" name="Alumno.Materno" class="form-control text-uppercase" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label>Teléfono</label>
+                    <input type="text" name="Alumno.Telefono" class="form-control" maxlength="20" />
                 </div>
                 <div class="col-md-6">
-                    <label>Quién realiza el trámite</label>
-                    <input type="text" name="QuienRealiza" class="form-control" required />
+                    <label>Correo</label>
+                    <input type="email" name="Alumno.Correo" class="form-control" />
                 </div>
+
+                <!-- Catálogos -->
                 <div class="col-md-4">
                     <label>Municipio</label>
                     <select name="MunicipioId" class="form-select" required>
@@ -114,6 +148,7 @@
                         }
                     </select>
                 </div>
+
                 <div class="col-md-4">
                     <label>Nivel</label>
                     <select name="NivelId" class="form-select" required>
@@ -124,6 +159,7 @@
                         }
                     </select>
                 </div>
+
                 <div class="col-md-4">
                     <label>Tipo de Trámite</label>
                     <select name="TipoTramiteId" class="form-select" required>
@@ -134,56 +170,79 @@
                         }
                     </select>
                 </div>
-                <div class="col-12">
-                    <label>Asunto o descripción breve</label>
-                    <textarea name="Asunto" rows="3" class="form-control"></textarea>
+
+                <div class="col-md-6">
+                    <label>¿Quién realiza el trámite?</label>
+                    <input type="text" name="QuienRealiza" class="form-control text-uppercase" required />
                 </div>
+
+                <div class="col-md-6">
+                    <label>Asunto o descripción</label>
+                    <textarea name="Asunto" rows="2" class="form-control text-uppercase" required></textarea>
+                </div>
+
                 <div class="col-12">
                     <button type="submit" class="btn btn-submit mt-3">Registrar Solicitud</button>
+                    <a href="/Home/Index" class="btn btn-back">Volver al inicio</a>
                 </div>
             </div>
         </form>
     </div>
-
-    <script>
-        const regexCurp = /^[A-Z]{4}\d{6}[A-Z]{6}[0-9A-Z]{2}$/i;
-        const curpInput = document.getElementById("CURP");
-        const statusDiv = document.getElementById("curpStatus");
-        const btnValidar = document.getElementById("btnValidarCurp");
-
-        function setStatus(msg, ok) {
-          statusDiv.innerText = msg;
-          statusDiv.className = ok ? "form-text text-success" : "form-text text-warning";
-        }
-
-        btnValidar.addEventListener("click", async () => {
-          const curp = curpInput.value.trim().toUpperCase();
-          if (!regexCurp.test(curp)) {
-            Swal.fire({icon:"error", title:"CURP inválida", text:"Verifica el formato (18 caracteres)."});
-            return;
-          }
-          try {
-            setStatus("Consultando RENAPO...", false);
-            const res = await fetch(`/Tickets/ValidarCurp?curp=${encodeURIComponent(curp)}`);
-            const data = await res.json();
-            if (data.ok) {
-              setStatus("CURP encontrada en RENAPO (demo).", true);
-            } else {
-              setStatus("CURP no encontrada en RENAPO (demo).", false);
-            }
-          } catch (e) {
-            setStatus("No se pudo consultar RENAPO. Continuarás solo con validación local.", false);
-          }
-        });
-
-        // Bloquea submit si CURP no cumple formato
-        document.getElementById("formTicket")?.addEventListener("submit", function(e) {
-          const curp = curpInput.value.trim();
-          if (!regexCurp.test(curp)) {
-            e.preventDefault();
-            Swal.fire({icon:"error", title:"CURP inválida", text:"Por favor ingresa una CURP válida."});
-          }
-        });
-    </script>
+   
 </body>
 </html>
+ @section Scripts {
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const regexCurp = /^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/i;
+        const curpInput = document.getElementById("CURP");
+
+        document.getElementById("formTicket")?.addEventListener("submit", function (e) {
+            const curp = curpInput.value.trim().toUpperCase();
+            if (!regexCurp.test(curp)) {
+                e.preventDefault();
+                Swal.fire({ icon: "error", title: "CURP inválida", text: "Verifique el formato de la CURP." });
+                return;
+            }
+
+            // Convierte todo a mayúsculas antes de enviar
+            document.querySelectorAll(".text-uppercase").forEach(el => {
+                if (el.value) el.value = el.value.toUpperCase();
+            });
+        });
+            // Validar CURP y autocompletar datos si existe
+        $('#CURP').on('blur', function () {
+            let curp = $(this).val().trim().toUpperCase();
+            if (curp.length === 18) {
+                $.get(`/Tickets/BuscarAlumnoPorCurp?curp=${curp}`, function (data) {
+                    if (data.existe) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'CURP registrado',
+                            text: 'Los datos del alumno han sido cargados.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // Autocompletar y bloquear edición
+                        $('input[name="Alumno.Nombre"]').val(data.nombre).prop('readonly', true);
+                        $('input[name="Alumno.Paterno"]').val(data.paterno).prop('readonly', true);
+                        $('input[name="Alumno.Materno"]').val(data.materno).prop('readonly', true);
+                        $('input[name="Alumno.Telefono"]').val(data.telefono);
+                        $('input[name="Alumno.Correo"]').val(data.correo);
+                        $('select[name="MunicipioId"]').val(data.municipioId);
+                        $('select[name="NivelId"]').val(data.nivelId);
+                    } else {
+                        // Limpiar y habilitar edición
+                        $('input[name="Alumno.Nombre"], input[name="Alumno.Paterno"], input[name="Alumno.Materno"]').val("").prop('readonly', false);
+                        $('input[name="Alumno.Telefono"], input[name="Alumno.Correo"]').val("");
+                    }
+                });
+            }
+        });
+    </script>
+    }
