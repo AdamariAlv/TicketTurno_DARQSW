@@ -3,6 +3,188 @@
 }
 
 <h2 class="mb-4">@ViewData["Title"]</h2>
+
 <div class="alert alert-info">
-    ¡Bienvenido al panel! <br>
+    ¡Bienvenido al panel de control!
 </div>
+
+<!-- 🔹 Filtros -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label>Municipio</label>
+        <select id="filtroMunicipio" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var m in ViewBag.Municipios)
+            {
+                <option value="@m.Nombre">@m.Nombre</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Nivel</label>
+        <select id="filtroNivel" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var n in ViewBag.Niveles)
+            {
+                <option value="@n.Nombre">@n.Nombre</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Tipo de Trámite</label>
+        <select id="filtroTramite" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var t in ViewBag.TiposTramite)
+            {
+                <option value="@t.Nombre">@t.Nombre</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Solicitud</label>
+        <select id="filtroSolicitud" class="form-select">
+            <option value="">Todos</option>
+            @foreach (var s in ViewBag.Solicitudes)
+            {
+                <option value="@s">@s</option>
+            }
+        </select>
+    </div>
+</div>
+
+<!-- 🔹 Tarjeta de resumen -->
+<div class="card mb-4 shadow">
+    <div class="card-body">
+        <h5>Total de solicitudes: <span id="totalSolicitudes" class="fw-bold text-primary">0</span></h5>
+    </div>
+</div>
+
+<!-- 🔹 Gráficos -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">Solicitudes por Municipio</div>
+            <div class="card-body"><canvas id="chartMunicipio"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">Solicitudes por Nivel</div>
+            <div class="card-body"><canvas id="chartNivel"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-white">Solicitudes por Tipo de Trámite</div>
+            <div class="card-body"><canvas id="chartTramite"></canvas></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let charts = {};
+
+        async function cargarDatos() {
+            const municipio = document.getElementById('filtroMunicipio')?.value || '';
+            const nivel = document.getElementById('filtroNivel')?.value || '';
+            const tramite = document.getElementById('filtroTramite')?.value || '';
+            const solicitud = document.getElementById('filtroSolicitud')?.value || '';
+
+            const response = await fetch(`/Dashboard/ObtenerDatos?municipio=${municipio}&nivel=${nivel}&tipoTramite=${tramite}&solicitud=${solicitud}`);
+            const data = await response.json();
+
+            // Total
+            document.getElementById('totalSolicitudes').textContent = data.total;
+
+            // Renderizar los gráficos
+            renderPieChart('chartMunicipio', 'Solicitudes por Municipio', data.municipio);
+            renderBarChart('chartNivel', 'Solicitudes por Nivel Educativo', data.nivel);
+            renderPieChart('chartTramite', 'Solicitudes por Tipo de Trámite', data.tramite);
+        }
+
+        // Gráfico circular (doughnut)
+        function renderPieChart(id, title, data) {
+            const ctx = document.getElementById(id);
+            if (charts[id]) charts[id].destroy();
+
+            charts[id] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(x => x.label),
+                    datasets: [{
+                        label: title,
+                        data: data.map(x => x.valor),
+                        backgroundColor: generarColores(data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 18 }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de barras comparativas
+        function renderBarChart(id, title, data) {
+            const ctx = document.getElementById(id);
+            if (charts[id]) charts[id].destroy();
+
+            charts[id] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(x => x.label),
+                    datasets: [{
+                        label: title,
+                        data: data.map(x => x.valor),
+                        backgroundColor: generarColores(data.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 18 }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Generar colores aleatorios
+        function generarColores(cantidad) {
+            const colores = [];
+            for (let i = 0; i < cantidad; i++) {
+                const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                colores.push(color);
+            }
+            return colores;
+        }
+
+        // Cargar al inicio
+        cargarDatos();
+
+        // Actualizar cuando cambie un filtro
+        document.querySelectorAll('#filtroMunicipio, #filtroNivel, #filtroTramite, #filtroSolicitud')
+            .forEach(select => select.addEventListener('change', cargarDatos));
+    </script>
+}
