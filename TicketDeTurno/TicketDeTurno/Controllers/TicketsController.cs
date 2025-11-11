@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TicketDeTurno.Web.Data;
 using TicketDeTurno.Web.Models;
 
@@ -163,6 +164,100 @@ namespace TicketDeTurno.Controllers
                 return Json(new { existe = false });
         }
 
+    [HttpGet]
+        public IActionResult Consultar()
+        {
+            ViewBag.Municipios = _context.Municipios.ToList();
+            ViewBag.Niveles = _context.Niveles.ToList();
+            ViewBag.TiposTramite = _context.TiposTramite.ToList();
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult BuscarEstatus(string curp, int municipioId, int turno)
+        {
+            var solicitud = _context.Solicitudes
+                .Include(s => s.Alumno)
+                .Include(s => s.Municipio)
+                .Include(s => s.TipoTramite)
+                .FirstOrDefault(s =>
+                    s.CURP == curp &&
+                    s.MunicipioId == municipioId &&
+                    s.NumeroTurno == turno
+                );
+
+            if (solicitud == null)
+                return Json(new { encontrado = false });
+
+            return Json(new
+            {
+                encontrado = true,
+                solicitudId = solicitud.SolicitudId,
+                curp = solicitud.CURP,
+                nombre = $"{solicitud.Alumno?.Nombre} {solicitud.Alumno?.Paterno}",
+                municipio = solicitud.Municipio?.Nombre,
+                tramite = solicitud.TipoTramite?.Nombre,
+                estatus = solicitud.Estatus,
+                fechaAlta = solicitud.FechaAlta.ToString("dd/MM/yyyy")
+            });
+        }
+
+
+
+
+        // Obtener datos para edición
+        [HttpGet]
+        public IActionResult ObtenerSolicitud(Guid id)
+        {
+            var solicitud = _context.Solicitudes
+                .Include(s => s.Alumno)
+                .Include(s => s.Municipio)
+                .Include(s => s.Nivel)
+                .Include(s => s.TipoTramite)
+                .FirstOrDefault(s => s.SolicitudId == id);
+
+            if (solicitud == null)
+                return Json(new { ok = false, msg = "No se encontró la solicitud" });
+
+            return Json(new
+            {
+                ok = true,
+                id = solicitud.SolicitudId,
+                curp = solicitud.CURP,
+                nombre = $"{solicitud.Alumno?.Nombre} {solicitud.Alumno?.Paterno} {solicitud.Alumno?.Materno}",
+                municipioId = solicitud.MunicipioId,
+                nivelId = solicitud.NivelId,
+                tipoTramiteId = solicitud.TipoTramiteId,
+                asunto = solicitud.Asunto,
+                estatus = solicitud.Estatus
+            });
+        }
+
+
+        // Guardar cambios desde el público
+        [HttpPost]
+        public IActionResult ActualizarSolicitud(Guid id, int municipioId, int nivelId, int tipoTramiteId, string asunto)
+        {
+            var solicitud = _context.Solicitudes.FirstOrDefault(s => s.SolicitudId == id);
+
+            if (solicitud == null)
+                return Json(new { ok = false, msg = "No se encontró la solicitud." });
+
+            if (solicitud.Estatus == "Resuelto")
+                return Json(new { ok = false, msg = "La solicitud ya está resuelta y no puede editarse." });
+
+            solicitud.MunicipioId = municipioId;
+            solicitud.NivelId = nivelId;
+            solicitud.TipoTramiteId = tipoTramiteId;
+            solicitud.Asunto = asunto.ToUpper();
+
+            _context.SaveChanges();
+
+            return Json(new { ok = true, msg = "Solicitud actualizada correctamente." });
+        }
 
     }
+
+
 }
+

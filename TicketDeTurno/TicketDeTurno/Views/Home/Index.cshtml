@@ -1,8 +1,140 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    Layout = null;
+    ViewData["Title"] = "Inicio - Sistema de Turnos";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Sistema de Turnos - Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #313b83, #6d3f8a);
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-card {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            width: 700px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        p {
+            color: #ddd;
+            margin-bottom: 40px;
+        }
+
+        .btn-menu {
+            display: block;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px auto;
+            width: 80%;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+            .btn-menu:hover {
+                background: #8f7cf7;
+                transform: translateY(-3px);
+            }
+
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            text-align: center;
+            width: 100%;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @@keyframes float {
+            0%, 100%
+
+        {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+
+        }
+
+        .logo {
+            font-size: 4rem;
+            color: #ffffff;
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="menu-card">
+        <div class="logo mb-3">
+            <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+        <h1>Sistema de Turnos</h1>
+        <p>Seleccione una opción para continuar</p>
+
+        <a href="/Tickets/Registrar" class="btn-menu">
+            <i class="bi bi-pencil-square icon"></i> Registrar nueva solicitud
+        </a>
+
+        <a href="/Tickets/Consultar" class="btn-menu">
+            <i class="bi bi-search icon"></i> Consultar estatus de solicitud
+        </a>
+
+        <a href="/Catalogos/Solicitudes" class="btn-menu">
+            <i class="bi bi-shield-lock icon"></i> Panel administrativo
+        </a>
+    </div>
+
+    <div class="footer">
+        © @DateTime.Now.Year Sistema de Turnos — Facultad de Sistemas UAdeC
+    </div>
+</body>
+</html>
