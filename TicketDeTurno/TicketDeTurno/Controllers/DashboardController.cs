@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 using TicketDeTurno.Web.Data;
+using TicketDeTurno.Web.Models;
 
 namespace TuProyecto.Controllers
 {
@@ -29,6 +30,11 @@ namespace TuProyecto.Controllers
 
             ViewBag.Solicitudes = await _context.Solicitudes
                 .OrderBy(s => s.Estatus).Select(s => s.Estatus).Distinct().ToListAsync();
+
+            // datos de las vistas SQL
+            ViewBag.VistaDetalle = await _context.VistaSolicitudesDetalle.ToListAsync();
+            ViewBag.VistaAlumnos = await _context.VistaAlumnosExtendido.ToListAsync();
+            ViewBag.VistaTurnosDia = await _context.VistaTurnosPorDia.ToListAsync();
 
             return View();
         }
@@ -81,6 +87,25 @@ namespace TuProyecto.Controllers
                 nivel = porNivel,
                 tramite = porTramite
             });
+
+
+        }
+        public IActionResult TurnosMunicipio(int id)
+        {
+            var turnos = _context.Solicitudes
+                .FromSqlInterpolated($"EXEC sp_ObtenerTurnosPorMunicipio {id}")
+                .ToList();
+
+            return View(turnos);
+        }
+
+        public IActionResult ObtenerTurnosSP(int municipioId)
+        {
+            var resultado = _context.Solicitudes
+                .FromSqlInterpolated($"EXEC sp_ObtenerTurnosPorMunicipio {municipioId}")
+                .ToList();
+
+            return Json(resultado);
         }
     }
 }

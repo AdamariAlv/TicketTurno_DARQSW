@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TicketDeTurno.Web.Models;
 using System.Linq;
+using TicketDeTurno.Models;
+using TicketDeTurno.Web.Models;
 
 
 namespace TicketDeTurno.Web.Data //SRP
@@ -15,6 +16,9 @@ namespace TicketDeTurno.Web.Data //SRP
         public DbSet<Solicitud> Solicitudes { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<TipoTramite> TiposTramite { get; set; }
+        public DbSet<VwSolicitudesDetalle> VistaSolicitudesDetalle { get; set; }
+        public DbSet<VwAlumnosExtendido> VistaAlumnosExtendido { get; set; }
+        public DbSet<VwTurnosPorDia> VistaTurnosPorDia { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,6 +31,18 @@ namespace TicketDeTurno.Web.Data //SRP
             {
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
             }
+
+            modelBuilder.Entity<VwSolicitudesDetalle>()
+                .ToView("vw_SolicitudesDetalle")
+                .HasNoKey();
+
+            modelBuilder.Entity<VwAlumnosExtendido>()
+                .ToView("vw_AlumnosExtendido")
+                .HasNoKey();
+
+            modelBuilder.Entity<VwTurnosPorDia>()
+                .ToView("vw_TurnosPorDia")
+                .HasNoKey();
         }
 
     }
